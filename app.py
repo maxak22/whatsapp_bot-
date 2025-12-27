@@ -55,6 +55,8 @@ def agent_reply(user_text):
 # SEND WHATSAPP MESSAGE
 # ======================
 def send_whatsapp(to, text):
+    url = f"https://graph.facebook.com/v22.0/{PHONE_NUMBER_ID}/messages"
+
     headers = {
         "Authorization": f"Bearer {WHATSAPP_TOKEN}",
         "Content-Type": "application/json"
@@ -62,11 +64,18 @@ def send_whatsapp(to, text):
 
     payload = {
         "messaging_product": "whatsapp",
+        "recipient_type": "individual",
         "to": to,
-        "text": {"body": text}
+        "type": "text",
+        "text": {
+            "preview_url": False,
+            "body": text
+        }
     }
 
-    requests.post(WHATSAPP_API_URL, headers=headers, json=payload)
+    response = requests.post(url, headers=headers, json=payload)
+    print("WHATSAPP API RESPONSE:", response.status_code, response.text)
+
 
 # ======================
 # RECEIVE WHATSAPP MSG
