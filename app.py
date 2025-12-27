@@ -1,9 +1,16 @@
 from flask import Flask, request, jsonify
 import requests
 import os
+import logging
 from openai import OpenAI
 
 app = Flask(__name__)
+
+# ======================
+# LOGGING
+# ======================
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # ======================
 # CONFIG
@@ -67,15 +74,19 @@ def send_whatsapp(to, text):
 @app.route("/webhook", methods=["POST"])
 def receive_message():
     data = request.json
+    logger.info(f"Received webhook: {data}")
 
     try:
         msg = data["entry"][0]["changes"][0]["value"]["messages"][0]
         user_number = msg["from"]
         user_text = msg["text"]["body"]
-    except Exception:
+        logger.info(f"Message from {user_number}: {user_text}")
+    except Exception as e:
+        logger.error(f"Error parsing message: {e}")
         return jsonify(status="ignored"), 200
 
     reply = agent_reply(user_text)
+    logger.info(f"Sending reply to {user_number}: {reply}")
     send_whatsapp(user_number, reply)
 
     return jsonify(status="sent"), 200
